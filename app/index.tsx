@@ -12,10 +12,9 @@ interface Note {
 
 export default function Index() {
   const [notes, setNotes] = useState<Note[]>([]);
-  const navigation = useNavigation();
-
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
+  const navigation = useNavigation();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -36,7 +35,8 @@ export default function Index() {
   useEffect(() => {
     const loadNotes = async () => {
       const keys = await AsyncStorage.getAllKeys();
-      const allNotes = await AsyncStorage.multiGet(keys);
+      const orderedKeys = keys.toReversed(); // reverse the order of keys so newer notes come first
+      const allNotes = await AsyncStorage.multiGet(orderedKeys);
 
       const notesList = allNotes.map(([noteId, noteJson]) => {
         if (noteJson) {
@@ -56,8 +56,6 @@ export default function Index() {
     try {
       // remove from AsyncStorage
       await AsyncStorage.multiRemove(selectedNotes);
-
-      console.log("Selected Notes:", selectedNotes);
 
       // remove from state
       const updatedNotes = notes.filter((note) => !selectedNotes.includes(note.noteId));
@@ -83,8 +81,6 @@ export default function Index() {
       setSelectedNotes(updatedNotes);
       setSelectionMode(true);
     }
-
-    console.log("Toggled Notes:", selectedNotes);
   }
 
   return (
