@@ -106,9 +106,7 @@ export default function Index() {
             >
               <View>
                 <Text style={styles.noteTitle}>{item.noteTitle}</Text>
-                <Text style={styles.noteText}>
-                  {item.noteText.length > 100 ? `${item.noteText.substring(0, 100)}...` : item.noteText}
-                </Text>
+                <Text style={styles.noteText} numberOfLines={4}>{item.noteText}</Text>
               </View>
             </TouchableOpacity>
           </View>
