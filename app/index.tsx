@@ -1,8 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, router, useNavigation } from "expo-router";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import CustomDeleteAlert from "@/components/CustomDeleteAlert";
 
 interface Note {
   noteId: string;
@@ -16,12 +17,14 @@ export default function Index() {
   const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
   const navigation = useNavigation();
 
+  const [alertVisible, setAlertVisible] = useState(false);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "Notes",
       headerRight: () => 
       selectionMode ? (
-      <TouchableOpacity style={styles.newNote} onPress={() => deleteNote(selectedNotes)}>
+      <TouchableOpacity style={styles.newNote} onPress={() => showDeleteAlert(selectedNotes)}>
         <Ionicons name="trash" size={30} color="red"/>
       </TouchableOpacity>
     ) : (
@@ -52,6 +55,10 @@ export default function Index() {
     return unsubscribe;
   }, [navigation]);
 
+  const showDeleteAlert = (selectedNotes: string[]) => {
+    setAlertVisible(true);
+  }
+
   const deleteNote = async (selectedNotes: string[]) => {
     try {
       // remove from AsyncStorage
@@ -64,6 +71,7 @@ export default function Index() {
       // reset selected notes
       setSelectedNotes([]);
       setSelectionMode(false);
+      setAlertVisible(false);
     } catch (error) {
       console.error("Error deleting note:", error)
     }
@@ -111,6 +119,12 @@ export default function Index() {
             </TouchableOpacity>
           </View>
         )}
+      />
+
+      <CustomDeleteAlert
+        visible={alertVisible}
+        onDelete={() => deleteNote(selectedNotes)}
+        onCancel={() => setAlertVisible(false)}
       />
     </View>
   );
