@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { ToastAndroid } from "react-native";
 
@@ -19,6 +19,31 @@ export default function Note() {
     const [noteTitle, setNoteTitle] = useState("");
 
     const [editMode, setEditMode] = useState(false);
+
+    const navigation = useNavigation();
+
+    useEffect(() => {
+        if (editMode){
+            const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+                e.preventDefault()
+                
+                Alert.alert(
+                    "Discard changes?",
+                    "You have unsaved changes. Do you want to discard them and leave?",
+                    [
+                        {text: "Stay", style: "cancel", onPress: () => {}},
+                        {
+                            text: "Discard & Leave",
+                            style: "destructive",
+                            onPress: () => { navigation.dispatch(e.data.action); }
+                        },
+                    ]
+                );
+            })
+
+            return unsubscribe
+        }
+    }, [navigation, editMode])
 
     const saveNote = async (noteTitle: string, noteText: string) => {
         try {
