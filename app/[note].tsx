@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { ToastAndroid } from "react-native";
 
 type Note = {
     noteTitle: string,
@@ -16,6 +17,8 @@ export default function Note() {
 
     const [noteText, setNoteText] = useState("");
     const [noteTitle, setNoteTitle] = useState("");
+
+    const [editMode, setEditMode] = useState(false);
 
     const saveNote = async (noteTitle: string, noteText: string) => {
         try {
@@ -58,6 +61,14 @@ export default function Note() {
         }
     }, [noteId]);
 
+    const notifySave = () => {
+        if (Platform.OS === 'android') {
+            ToastAndroid.show("Your note was saved! 🎉", ToastAndroid.SHORT)
+        } else {
+            Alert.alert("Your note was saved! 🎉");
+        }
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -73,10 +84,16 @@ export default function Note() {
                     autoCapitalize="words"
 
                 />
-                <TouchableOpacity style={styles.save} onPress= {() => {
+                <TouchableOpacity 
+                style={[styles.save, !editMode && styles.saveDisabled]} 
+                onPress= {() => {
+                    setEditMode(false);
                     saveNote(noteTitle, noteText);
-                    router.navigate('/');
-                }} >
+                    notifySave(); // send a Toast message that the note has been saved
+                    Keyboard.dismiss(); // hide the keyboard
+                }}
+                disabled= {!editMode} // disable button if not in edit mode
+                >  
                     <Ionicons name="checkmark-done" size={30} color="blue"/>
                 </TouchableOpacity>
             </View>
@@ -86,6 +103,7 @@ export default function Note() {
                 style={styles.body}
                 value={noteText}
                 onChangeText={(noteText) => {
+                    setEditMode(true)
                     setNoteText(noteText);
                 }}
                 multiline={true}
@@ -115,6 +133,9 @@ const styles = StyleSheet.create({
     save: {
         alignSelf: "center",
         paddingHorizontal: 5,
+    },
+    saveDisabled: {
+        opacity: 0.3,
     },
     headerInput: {
         fontSize: 20,
