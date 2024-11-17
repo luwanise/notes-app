@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Keyboard, Platform, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Keyboard, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -23,6 +23,8 @@ export default function Note() {
 
     const [alertVisible, setAlertVisible] = useState(false);
     const [onLeave, setOnLeave] = useState<() => void>(() => () => {});
+
+    const [isWarning, setIsWarning] = useState(false);
 
     const navigation = useNavigation();
 
@@ -80,11 +82,24 @@ export default function Note() {
         }
     }, [noteId]);
 
-    const notifySave = () => {
+    const sendToast = (message: string) => {
         if (Platform.OS === 'android') {
-            ToastAndroid.show("Your note was saved! 🎉", ToastAndroid.SHORT)
+            ToastAndroid.show(message, ToastAndroid.SHORT)
         } else {
-            Alert.alert("Your note was saved! 🎉");
+            Alert.alert(message);
+        }
+    }
+
+    const initiateSave = () => {
+        if (noteTitle !== ''){
+            setEditMode(false);
+            saveNote(noteTitle, noteText);
+            sendToast("Your note was saved! 🎉"); // send a Toast message that the note has been saved
+            Keyboard.dismiss(); // hide the keyboard
+        } else {
+            setIsWarning(true);
+            Keyboard.dismiss();
+            sendToast("Note Title is required!");
         }
     }
 
@@ -95,11 +110,12 @@ export default function Note() {
                     <Ionicons name="arrow-back" size={24} color="black"/>
                 </TouchableOpacity>
                 <TextInput
-                    style={styles.headerInput}
+                    style={[styles.headerInput, isWarning && styles.warningInput]}
                     value={noteTitle}
                     onChangeText={(noteTitle) => {
                         setEditMode(true);
                         setNoteTitle(noteTitle);
+                        setIsWarning(false);
                     }}
                     placeholder="Title"
                     maxLength={35}
@@ -109,10 +125,7 @@ export default function Note() {
                 <TouchableOpacity 
                 style={[styles.save, !editMode && styles.saveDisabled]} 
                 onPress= {() => {
-                    setEditMode(false);
-                    saveNote(noteTitle, noteText);
-                    notifySave(); // send a Toast message that the note has been saved
-                    Keyboard.dismiss(); // hide the keyboard
+                    initiateSave()
                 }}
                 disabled= {!editMode} // disable button if not in edit mode
                 >  
@@ -169,9 +182,15 @@ const styles = StyleSheet.create({
         opacity: 0.3,
     },
     headerInput: {
-        fontSize: 20,
         flex: 1,
+        fontSize: 20,
         textAlign: "center",
+        borderBottomWidth: 1,
+        borderColor: "transparent",
+    },
+    warningInput: {
+        borderColor: "red",
+        borderBottomWidth: 1,
     },
     body: {
         flex: 1,
