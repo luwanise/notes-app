@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, router, useNavigation } from "expo-router";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, BackHandler, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import CustomDeleteAlert from "@/components/CustomDeleteAlert";
 
@@ -90,6 +90,22 @@ export default function Index() {
       setSelectionMode(true);
     }
   }
+
+  useEffect(() => {
+    const handleBackPress = () => {
+      if (selectionMode) {
+        setSelectionMode(false);
+        setSelectedNotes([]);
+        return true; // Prevents default back behavior
+      }
+      return false; // Allows default back behavior
+    };
+  
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", handleBackPress);
+  
+    return () => backHandler.remove();
+  }, [selectionMode]);
+  
 
   return (
     <View style={styles.container}>
