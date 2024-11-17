@@ -17,7 +17,7 @@ A simple and intuitive Notes app built with React Native. This app allows users 
 ## Setup
 1. Clone the repository:
    ```bash
-   git clone https://github.com/luwanise/timer-app.git
+   git clone https://github.com/luwanise/notes-app.git
    ```
 2. Install dependencies:
    ```bash
